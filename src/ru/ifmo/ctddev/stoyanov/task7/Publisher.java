@@ -13,6 +13,9 @@ public class Publisher implements Runnable {
     @Override
     public void run() {
         Task task = madeQueue.poll();
-        System.out.println("Task completed: sleeped for " + task.timeTosleep + " millis.");
+        if (task == null) {
+            return;
+        }
+        System.out.println("Task completed. Task id: " + task.id + "  and  thread number: " + task.threadNumber);
     }
 }

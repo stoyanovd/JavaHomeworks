@@ -18,6 +18,9 @@ public class Worker implements Runnable {
     @Override
     public void run() {
         Task task = producedQueue.poll();
+        if (task == null) {
+            return;
+        }
         task.run();
         madeQueue.add(task);
     }

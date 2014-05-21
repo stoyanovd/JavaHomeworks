@@ -14,6 +14,9 @@ public class RunnablesRunner implements Runnable {
     public void run() {
         while (!Thread.currentThread().isInterrupted()) {
             Runnable runnable = runnablesToRun.poll();
+            if (runnable == null) {
+                continue;
+            }
             runnable.run();
             runnablesToRun.add(runnable);
         }

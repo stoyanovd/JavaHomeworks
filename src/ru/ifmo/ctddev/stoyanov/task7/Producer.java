@@ -4,7 +4,7 @@ import java.util.concurrent.BlockingQueue;
 
 public class Producer implements Runnable {
 
-    private static int TIME_TO_SLEEP_MILLIS = 2000;
+    private static long TIME_TO_SLEEP_MILLIS = 2000;
 
     private final BlockingQueue<Task> producedQueue;
 
@@ -16,6 +16,11 @@ public class Producer implements Runnable {
     @Override
     public void run() {
         Task task = new Task(TIME_TO_SLEEP_MILLIS);
-        producedQueue.add(task);
+        try {
+            producedQueue.put(task);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+        }
     }
 }

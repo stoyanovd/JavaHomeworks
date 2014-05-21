@@ -6,10 +6,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class MainClass {
 
     private static int MAX_RUNNABLES = 30;
+
     private static int MAX_PRODUCERS = 7;
     private static int MAX_WORKERS = 7;
     private static int MAX_PUBLISHERS = 7;
+
     private static int MAX_THREADS = 21;
+
+    private static int MAX_WAITING_TASKS = 21;
 
 
     static BlockingQueue<Runnable> runnables;
@@ -18,7 +22,9 @@ public class MainClass {
 
     public static void main(String[] arg) {
 
-        runnables = new LinkedBlockingQueue<>();
+        runnables = new LinkedBlockingQueue<>(MAX_RUNNABLES);
+        producedQueue = new LinkedBlockingQueue<>(MAX_WAITING_TASKS);
+        madeQueue = new LinkedBlockingQueue<>(MAX_WAITING_TASKS);
 
         for (int i = 0; i < MAX_PRODUCERS; i++) {
             runnables.add(new Producer(producedQueue));
