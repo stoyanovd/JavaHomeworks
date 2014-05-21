@@ -11,26 +11,32 @@ public class Grep {
     ArrayList<String> patterns;
 
     Grep(String[] arg) throws IOException {
-        patterns = new ArrayList<String>();
-        if ("-".equals(arg[0]))
-            MyReader.readPatternsFromConsole(this);
-        else
-            MyReader.readPatternsFromArguments(this, arg);
+        MyReader r;
+        if ("-".equals(arg[0])) {
+            ///r = ???
+            r = new MyReaderConsole();
+        } else {
+            r = new MyReaderCommandLine(arg);
+        }
+        r.read();
+        patterns = new ArrayList<>(r.getPatterns());
     }
 
 
-    void execute() throws IOException {
-        MyFileVisitor myFileVisitor = new MyFileVisitor(this);
+    public void execute() throws IOException {
+        MyFileVisitor myFileVisitor = new MyFileVisitor(patterns);
         Path currentPath = Paths.get(".");
         Files.walkFileTree(currentPath, myFileVisitor);
     }
 
     public static void allActions(String[] arg) throws IOException {
-        if (arg.length == 0)
+        if (arg.length == 0) {
             throw new IOException(SomeStrings.missingInput);
+        }
         Grep grep = new Grep(arg);
-        if (grep.patterns.size() == 0)
+        if (grep.patterns.size() == 0) {
             throw new IOException("No one pattern is found.");
+        }
         grep.execute();
     }
 

@@ -12,14 +12,13 @@ public class SomeStrings {
             "Or you can put your strings in launch arguments.";
 
 
-    public static final boolean DEBUG = true;
-
-    public static final ArrayList<Byte> separators = new ArrayList<Byte>();
+    public static final ArrayList<Byte> separators = new ArrayList<>();
 
     static {
         byte[] temp = lineSeparator.getBytes();
-        for (byte x : temp)
+        for (byte x : temp) {
             separators.add(x);
+        }
     }
 
 

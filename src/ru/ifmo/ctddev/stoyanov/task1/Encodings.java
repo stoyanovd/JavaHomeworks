@@ -7,7 +7,7 @@ public class Encodings {
     public static final ArrayList<String> encodings;
 
     static {
-        encodings = new ArrayList<String>();
+        encodings = new ArrayList<>();
         encodings.add("UTF-8");
         encodings.add("KOI8-R");
         encodings.add("CP1251");
@@ -17,6 +17,6 @@ public class Encodings {
         encodings.add("Big5");
     }
 
-    public static final int maxCharacterSizeInBytes = 4;             //TODO   make it correct
-    //maybe it will be more good to set it big.
+    public static final int maxCharacterSizeInBytes = 4;
+
 }

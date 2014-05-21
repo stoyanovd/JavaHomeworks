@@ -11,29 +11,33 @@ public class Searcher {
     private static final int COUNTOFSHOW = 30;
 
     ArrayList<ArrayList<Byte>> patterns;
-    private int maxTempSize;                                                           //7391
+    private int maxTempSize;
 
     Path currentPath;
-    Grep currentGrep;
+    ArrayList<String> patternsStrings;
 
     byte[] temp;
 
-    Searcher(Grep grep) throws IOException {
-        patterns = new ArrayList<ArrayList<Byte>>();
-        currentGrep = grep;
-        for (String s : grep.patterns) {
+    Searcher(ArrayList<String> _patterns) throws IOException {
+        patterns = new ArrayList<>();
+        patternsStrings = new ArrayList<>(_patterns);
+        for (String s : _patterns) {
             byte[] sArray = s.getBytes();
             patterns.add(new ArrayList<Byte>());
-            for (byte x : sArray)
+            for (byte x : sArray) {
                 patterns.get(patterns.size() - 1).add(x);
+            }
         }
         int maxPatternSize = 0;
-        for (ArrayList<Byte> pattern : patterns)
-            if (pattern.size() > maxPatternSize)
+        for (ArrayList<Byte> pattern : patterns) {
+            if (pattern.size() > maxPatternSize) {
                 maxPatternSize = pattern.size();
+            }
+        }
 
-        if (maxPatternSize == 0)
+        if (maxPatternSize == 0) {
             throw new IOException("Searcher: all patterns are null-size.");
+        }
         maxTempSize = Encodings.maxCharacterSizeInBytes * maxPatternSize * 4;
 
         temp = new byte[maxTempSize];
@@ -41,8 +45,9 @@ public class Searcher {
 
     public void cleanTemps() throws IOException {
         temp = new byte[maxTempSize];
-        if (file != null)
+        if (file != null) {
             file.close();
+        }
         file = null;
     }
 
@@ -72,8 +77,9 @@ public class Searcher {
     private long readBytes() throws IOException {
 
         int k = file.read(temp, bytesInTemp, temp.length - bytesInTemp);
-        if (k == -1)
+        if (k == -1) {
             return k;
+        }
         currentlyRead += k;
         bytesInTemp += k;
         checkLastStart();
@@ -81,29 +87,36 @@ public class Searcher {
     }
 
     private int contains(byte[] a, int rightBound, ArrayList<Byte> p) throws IOException {
-        if (rightBound > a.length)
+        if (rightBound > a.length) {
             throw new IOException("Error in trying to search a string.");
+        }
         int[] pr = new int[p.size()];
         pr[0] = 0;
         int k = 0;
         for (int i = 1; i < p.size(); i++) {
-            while (k > 0 && !p.get(k).equals(p.get(i)))
+            while (k > 0 && !p.get(k).equals(p.get(i))) {
                 k = pr[k - 1];
-            if (p.get(k).equals(p.get(i)))
+            }
+            if (p.get(k).equals(p.get(i))) {
                 k++;
+            }
             pr[i] = k;
         }
-
+        //there is string to find while testing: aaabsaas
         k = 0;
         for (int i = 0; i < rightBound; i++) {
-            if (k == p.size())
+            if (k == p.size()) {
                 k = pr[k - 1];
-            while (k > 0 && p.get(k) != a[i])         //aaabsaas
+            }
+            while (k > 0 && p.get(k) != a[i]) {
                 k = pr[k - 1];
-            if (k < p.size() && p.get(k) == a[i])
+            }
+            if (k < p.size() && p.get(k) == a[i]) {
                 k++;
-            if (k == p.size())
+            }
+            if (k == p.size()) {
                 return (i - p.size() + 1);
+            }
         }
         return -1;
     }
@@ -114,24 +127,28 @@ public class Searcher {
 
     private void moveTemp(int k) throws IOException {
         for (int i = 0; i < temp.length; i++) {
-            if (i + k < temp.length)
+            if (i + k < temp.length) {
                 temp[i] = temp[i + k];
-            else
+            } else {
                 temp[i] = 0;
+            }
         }
         bytesInTemp -= k;
-        if (bytesInTemp < 0)
+        if (bytesInTemp < 0) {
             bytesInTemp = 0;
+        }
         tempStartPosition += k;
         checkLastStart();
     }
 
     private void endCurrentLine() throws IOException {
         int k = consistsSeparator();
-        if (k == -1)
+        if (k == -1) {
             throw new IOException("Error in trying to close unfinished line");
-        if (findPattern)
+        }
+        if (findPattern) {
             writeLine(lastLineStart, tempStartPosition + k);
+        }
 
         lastStart = new ArrayList<Byte>();
         findPattern = false;
@@ -140,29 +157,33 @@ public class Searcher {
     }
 
     private void tryToEndLine() throws IOException {
-        if (consistsSeparator() != -1)
+        if (consistsSeparator() != -1) {
             endCurrentLine();
-        else if (bytesInTemp > temp.length / 2)
+        } else if (bytesInTemp > temp.length / 2) {
             moveTemp(bytesInTemp - temp.length / 2);
+        }
     }
 
     private boolean findEntry() throws IOException {
 
         int k = consistsSeparator();
-        if (k == -1)
+        if (k == -1) {
             k = bytesInTemp;
-        for (int i = 0; i < patterns.size(); i++)
+        }
+        for (int i = 0; i < patterns.size(); i++) {
             if (contains(temp, k, patterns.get(i)) != -1) {
-                lastFoundString = currentGrep.patterns.get(i);
+                lastFoundString = patternsStrings.get(i);
                 findPattern = true;
                 return true;
             }
+        }
         return false;
     }
 
     private void tryToFindAndEnd() throws IOException {
-        if (findEntry())
+        if (findEntry()) {
             findPattern = true;
+        }
         tryToEndLine();
     }
 
@@ -185,16 +206,18 @@ public class Searcher {
                 tryToEndLine();
                 continue;
             }
-            if (bytesInTemp < temp.length)
+            if (bytesInTemp < temp.length) {
                 continue;
+            }
             tryToFindAndEnd();
         }
 
         while (consistsSeparator() != -1) {
             tryToFindAndEnd();
         }
-        if (findEntry())
+        if (findEntry()) {
             writeLine(lastLineStart, tempStartPosition + bytesInTemp);
+        }
 
         try {
             file.close();
@@ -207,24 +230,26 @@ public class Searcher {
         int k = 0;
         while (k < x) {
             int p = file.read(arr, k, x - k);
-            if (p == -1)
+            if (p == -1) {
                 throw new IOException("Error in writing answer.");
+            }
             k += p;
         }
     }
 
     private void writeLine(long l, long r) throws IOException {                //  right bound is exclude.
-        if (tryingWriteWithSeek(l, r))
+        if (tryingWriteWithSeek(l, r)) {
             return;
-
+        }
         writeAnswer("Too large string.  Pattern that was found: " + lastFoundString);
     }
 
     private boolean tryingWriteWithSeek(long l, long r) throws IOException {
         long currentFilePosition = file.getFilePointer();
         file.seek(l);
-        if (file.getFilePointer() != l)
+        if (file.getFilePointer() != l) {
             return false;
+        }
         if (r - l < COUNTOFSHOW * 3) {
             byte[] toOut = new byte[(int) (r - l)];
             file.read(toOut);
@@ -235,16 +260,18 @@ public class Searcher {
             readEvenly(first, COUNTOFSHOW);
 
             file.seek((r - (long) COUNTOFSHOW));
-            if (file.getFilePointer() != (r - (long) COUNTOFSHOW))
+            if (file.getFilePointer() != (r - (long) COUNTOFSHOW)) {
                 return false;
+            }
 
             readEvenly(second, COUNTOFSHOW);
 
             writeAnswer((new String(first) + " ... " + (new String(second))));
         }
         file.seek(currentFilePosition);
-        if (file.getFilePointer() != currentFilePosition)
+        if (file.getFilePointer() != currentFilePosition) {
             throw new IOException("Error in seek. File: " + currentPath);
+        }
 
         return true;
 
