@@ -1,0 +1,2 @@
+javadoc -linkoffline http://docs.oracle.com/javase/7/docs/api/ http://docs.oracle.com/javase/7/docs/api/ -private -sourcepath src/ -classpath Tests.jar;hamcrest-core-1.3.jar;junit-4.11.jar;quickcheck-0.6.jar;. -d javadocs ru.ifmo.ctddev.stoyanov.task3 info.kgeorgiy.java.advanced.implementor
+pause
